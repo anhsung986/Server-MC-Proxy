@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server MC Proxy - Config Vault</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .rainbow-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #09090b 100%);
+        }
+        .rainbow-text {
+            background: linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #ec4899, #8b5cf6); border-radius: 3px; }
+    </style>
+</head>
+<body class="rainbow-bg text-gray-100 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-zinc-900/70 backdrop-blur-xl border-b border-zinc-800 sticky top-0 z-40 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-500 p-2.5 rounded-2xl shadow-lg shadow-purple-500/20">
+                    <i class="fa-solid fa-server text-white text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider rainbow-text">SERVER MC PROXY</h1>
+                    <p class="text-xs text-zinc-400">Quản lý cấu hình Proxy & Server Minecraft</p>
+                </div>
+            </div>
+            <button onclick="openModal()" class="bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2 text-sm active:scale-95">
+                <i class="fa-solid fa-plus"></i>
+                <span>Thêm Config</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Thanh tìm kiếm & Thống kê -->
+        <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 backdrop-blur-md shadow-xl">
+            <div class="w-full sm:w-1/2 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-400"></i>
+                <input type="text" id="searchInput" oninput="filterConfigs()" placeholder="Tìm kiếm tên, loại config (Bungee, Velocity, Paper)..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-11 pr-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition shadow-inner">
+            </div>
+            <div class="text-sm text-zinc-300 flex items-center space-x-2 bg-zinc-950/60 px-4 py-2.5 rounded-xl border border-zinc-800">
+                <i class="fa-solid fa-layer-group text-pink-400"></i>
+                <span>Tổng số: <strong id="totalCount" class="rainbow-text font-bold">0</strong> config</span>
+            </div>
+        </div>
+
+        <!-- Danh sách Config Grid -->
+        <div id="configGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Render bằng JS -->
+        </div>
+
+        <!-- Trạng thái trống -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="bg-zinc-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border border-zinc-800 shadow-inner">
+                <i class="fa-solid fa-box-open text-zinc-600 text-3xl"></i>
+            </div>
+            <p class="text-zinc-400 text-base font-medium">Chưa có cấu hình nào được lưu.</p>
+            <p class="text-zinc-500 text-xs mt-1">Hãy bấm nút "Thêm Config" phía trên để bắt đầu!</p>
+        </div>
+    </main>
+
+    <!-- Modal Thêm/Sửa -->
+    <div id="configModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 transition-all">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="px-6 py-4 bg-zinc-800/80 border-b border-zinc-700/60 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-lg text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>
+                    <span>Thêm Config Mới</span>
+                </h3>
+                <button onclick="closeModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="configForm" onsubmit="saveConfig(event)" class="p-6 space-y-4">
+                <input type="hidden" id="configIndex">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tên Config</label>
+                    <input type="text" id="configName" placeholder="VD: Velocity Config, Server Properties..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Loại Proxy / Server</label>
+                    <input type="text" id="configType" placeholder="VD: Velocity, BungeeCord, Paper..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Nội dung Config</label>
+                    <textarea id="configContent" rows="7" placeholder="Dán nội dung cấu hình vào đây..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 font-mono text-xs text-pink-300 focus:outline-none focus:border-purple-500 transition shadow-inner"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-5 py-2.5 rounded-xl text-sm font-medium transition">Hủy</button>
+                    <button type="submit" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-purple-500/30">Lưu Lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let configs = JSON.parse(localStorage.getItem('server_mc_proxy_configs')) || [];
+
+        function renderConfigs(data = configs) {
+            const grid = document.getElementById('configGrid');
+            const emptyState = document.getElementById('emptyState');
+            document.getElementById('totalCount').innerText = configs.length;
+
+            grid.innerHTML = '';
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-purple-500/50 transition duration-300 group backdrop-blur-md relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-70 group-hover:opacity-100 transition"></div>
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-bold text-base text-white truncate max-w-[170px]" title="${item.name}">${item.name}</h3>
+                            <span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs px-2.5 py-1 rounded-lg font-medium uppercase tracking-wider">${item.type}</span>
+                        </div>
+                        <div class="relative bg-zinc-950/90 rounded-xl p-3.5 border border-zinc-800/80 max-h-36 overflow-y-auto shadow-inner">
+                            <pre class="font-mono text-xs text-pink-300/90 whitespace-pre-wrap">${escapeHtml(item.content)}</pre>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
+                        <button onclick="copyContent(${index})" class="bg-zinc-800/60 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-600 hover:text-white text-zinc-200 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
+                            <i class="fa-regular fa-copy"></i> <span>Sao chép</span>
+                        </button>
+                        <div class="space-x-1">
+                            <button onclick="editConfig(${index})" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteConfig(${index})" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openModal() {
+            document.getElementById('configModal').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Config Mới';
+            document.getElementById('configForm').reset();
+            document.getElementById('configIndex').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('configModal').classList.add('hidden');
+        }
+
+        function saveConfig(e) {
+            e.preventDefault();
+            const index = document.getElementById('configIndex').value;
+            const name = document.getElementById('configName').value;
+            const type = document.getElementById('configType').value;
+            const content = document.getElementById('configContent').value;
+
+            const configItem = { name, type, content };
+
+            if (index === '') {
+                configs.unshift(configItem);
+            } else {
+                configs[index] = configItem;
+            }
+
+            localStorage.setItem('server_mc_proxy_configs', JSON.stringify(configs));
+            closeModal();
+            renderConfigs();
+        }
+
+        function editConfig(index) {
+            const item = configs[index];
+            document.getElementById('configModal').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Chỉnh Sửa Config';
+            document.getElementById('configIndex').value = index;
+            document.getElementById('configName').value = item.name;
+            document.getElementById('configType').value = item.type;
+            document.getElementById('configContent').value = item.content;
+        }
+
+        function deleteConfig(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa cấu hình này không?')) {
+                configs.splice(index, 1);
+                localStorage.setItem('server_mc_proxy_configs', JSON.stringify(configs));
+                renderConfigs();
+            }
+        }
+
+        function copyContent(index) {
+            const content = configs[index].content;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Đã sao chép nội dung config vào clipboard!');
+            });
+        }
+
+        function filterConfigs() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = configs.filter(item => 
+                item.name.toLowerCase().includes(keyword) || 
+                item.type.toLowerCase().includes(keyword)
+            );
+            renderConfigs(filtered);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        renderConfigs();
+    </script>
+</body>
+  </html>
+
