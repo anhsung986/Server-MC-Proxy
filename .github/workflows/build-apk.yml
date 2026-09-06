@@ -108,7 +108,7 @@ jobs:
             "appName": "Server MC Proxy",
             "webDir": "www",
             "server": {
-              "url": "https://anhsung986.github.io/chidoi/",
+              "url": "https://anhsung986.github.io/Server-MC-Proxy/",
               "cleartext": true
             }
           }
@@ -258,13 +258,14 @@ jobs:
           body: |
             # 🧊 Server MC Proxy
 
-            APK được build tự động bằng GitHub Actions.
+            APK được build tự động bằng GitHub Actions[span_0](start_span)[span_0](end_span).
 
             ## Thông tin
 
             - 📱 App: Server MC Proxy
             - 🎨 Icon: icon.png
             - 📦 Android APK
+            - 🌐 Website: https://anhsung986.github.io/Server-MC-Proxy/
 
           draft: false
           prerelease: false
