@@ -92,7 +92,7 @@
                 <input type="hidden" id="pluginIndex">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tên Plugin</label>
-                    <input type="text" id="pluginName" placeholder="VD: LuckPerms, EssentialsX, Vault..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                    <input type="text" id="pluginName" placeholder="VD: LuckPerms, EssentialsX..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -105,12 +105,18 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Link Tải File (.jar hoặc URL)</label>
-                    <input type="url" id="pluginUrl" placeholder="VD: https://github.com/.../plugin.jar" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Chọn File Plugin (.jar từ thiết bị)</label>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-400 cursor-pointer hover:border-purple-500 transition flex items-center justify-between overflow-hidden">
+                            <span id="fileNameDisplay" class="truncate">Chưa chọn file nào...</span>
+                            <span class="bg-zinc-800 text-zinc-200 px-3 py-1 rounded-lg text-xs font-medium ml-2 shrink-0"><i class="fa-solid fa-folder-open mr-1"></i> Duyệt</span>
+                            <input type="file" id="pluginFile" accept=".jar" onchange="handleFileSelect(event)" class="hidden">
+                        </label>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Mô Tả Ngắn</label>
-                    <textarea id="pluginDesc" rows="3" placeholder="Mô tả công dụng chính của plugin..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
+                    <textarea id="pluginDesc" rows="2" placeholder="Mô tả công dụng chính của plugin..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-5 py-2.5 rounded-xl text-sm font-medium transition">Hủy</button>
@@ -123,6 +129,24 @@
     <!-- JavaScript Logic -->
     <script>
         let plugins = JSON.parse(localStorage.getItem('server_mc_proxy_plugins')) || [];
+        let selectedFileBase64 = '';
+        let selectedFileName = '';
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            selectedFileName = file.name;
+            document.getElementById('fileNameDisplayinnerText').innerText = selectedFileName;
+            document.getElementById('fileNameDisplay').innerText = selectedFileName;
+            document.getElementById('fileNameDisplay').className = "truncate text-pink-300 font-mono";
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedFileBase64 = e.target.result; // Lưu dưới dạng mã hóa base64 để lưu vào localStorage
+            };
+            reader.readAsDataURL(file);
+        }
 
         function renderPlugins(data = plugins) {
             const grid = document.getElementById('pluginGrid');
@@ -146,15 +170,16 @@
                             <h3 class="font-bold text-base text-white truncate max-w-[160px]" title="${item.name}">${item.name}</h3>
                             <span class="bg-pink-500/10 text-pink-300 border border-pink-500/20 text-xs px-2.5 py-1 rounded-lg font-medium">${item.version}</span>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3 flex items-center justify-between">
                             <span class="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">Hỗ trợ: ${item.compat}</span>
+                            <span class="text-[11px] text-zinc-400 font-mono truncate max-w-[130px]" title="${item.fileName}"><i class="fa-solid fa-file-zipper text-yellow-500 mr-1"></i>${item.fileName}</span>
                         </div>
-                        <p class="text-xs text-zinc-300 bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 min-h-[50px] line-clamp-2">${item.desc || 'Không có mô tả.'}</p>
+                        <p class="text-xs text-zinc-300 bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 min-h-[45px] line-clamp-2">${item.desc || 'Không có mô tả.'}</p>
                     </div>
                     <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
-                        <a href="${item.url}" target="_blank" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
-                            <i class="fa-solid fa-download"></i> <span>Tải Jar</span>
-                        </a>
+                        <button onclick="downloadPluginFile(${index})" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
+                            <i class="fa-solid fa-download"></i> <span>Tải File .jar</span>
+                        </button>
                         <div class="space-x-1">
                             <button onclick="editPlugin(${index})" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="deletePlugin(${index})" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
@@ -170,6 +195,10 @@
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Plugin Mới';
             document.getElementById('pluginForm').reset();
             document.getElementById('pluginIndex').value = '';
+            document.getElementById('fileNameDisplay').innerText = 'Chưa chọn file nào...';
+            document.getElementById('fileNameDisplay').className = "truncate text-zinc-400";
+            selectedFileBase64 = '';
+            selectedFileName = '';
         }
 
         function closeModal() {
@@ -182,10 +211,27 @@
             const name = document.getElementById('pluginName').value;
             const version = document.getElementById('pluginVersion').value;
             const compat = document.getElementById('pluginCompat').value;
-            const url = document.getElementById('pluginUrl').value;
             const desc = document.getElementById('pluginDesc').value;
 
-            const pluginItem = { name, version, compat, url, desc };
+            // Nếu đang sửa mà không chọn file mới thì giữ nguyên file cũ
+            if (index !== '' && !selectedFileBase64) {
+                selectedFileBase64 = plugins[index].fileData;
+                selectedFileName = plugins[index].fileName;
+            }
+
+            if (!selectedFileBase64) {
+                alert('Vui lòng chọn một file .jar từ thiết bị!');
+                return;
+            }
+
+            const pluginItem = { 
+                name, 
+                version, 
+                compat, 
+                desc, 
+                fileName: selectedFileName, 
+                fileData: selectedFileBase64 
+            };
 
             if (index === '') {
                 plugins.unshift(pluginItem);
@@ -206,8 +252,12 @@
             document.getElementById('pluginName').value = item.name;
             document.getElementById('pluginVersion').value = item.version;
             document.getElementById('pluginCompat').value = item.compat;
-            document.getElementById('pluginUrl').value = item.url;
             document.getElementById('pluginDesc').value = item.desc;
+            
+            selectedFileBase64 = item.fileData;
+            selectedFileName = item.fileName;
+            document.getElementById('fileNameDisplay').innerText = selectedFileName;
+            document.getElementById('fileNameDisplay').className = "truncate text-pink-300 font-mono";
         }
 
         function deletePlugin(index) {
@@ -216,6 +266,20 @@
                 localStorage.setItem('server_mc_proxy_plugins', JSON.stringify(plugins));
                 renderPlugins();
             }
+        }
+
+        function downloadPluginFile(index) {
+            const item = plugins[index];
+            if (!item.fileData) {
+                alert('Không tìm thấy dữ liệu file!');
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = item.fileData;
+            a.download = item.fileName || 'plugin.jar';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function filterPlugins() {
@@ -231,5 +295,4 @@
         renderPlugins();
     </script>
 </body>
-  </html>
-          
+</html>
