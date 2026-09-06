@@ -38,7 +38,7 @@
             </div>
             <button onclick="openModal()" class="bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2 text-sm active:scale-95">
                 <i class="fa-solid fa-plus"></i>
-                <span>Thêm ConfiG</span>
+                <span>Thêm Config</span>
             </button>
         </div>
     </header>
@@ -94,7 +94,12 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Nội dung Config</label>
-                    <textarea id="configContent" rows="7" placeholder="Dán nội dung cấu hình vào đây..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 font-mono text-xs text-pink-300 focus:outline-none focus:border-purple-500 transition shadow-inner"></textarea>
+                    <div class="relative flex bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus-within:border-purple-500 transition shadow-inner">
+                        <!-- Số dòng -->
+                        <div id="lineNumbers" aria-hidden="true" class="select-none font-mono text-xs text-zinc-600 bg-zinc-900/50 py-2.5 px-3 text-right border-r border-zinc-800/80 overflow-hidden leading-relaxed pointer-events-none" style="min-width: 40px;">1</div>
+                        <!-- Textarea nhập nội dung -->
+                        <textarea id="configContent" rows="7" oninput="updateLineNumbers()" onscroll="syncScroll()" placeholder="Dán nội dung cấu hình vào đây..." required class="w-full bg-transparent p-2.5 font-mono text-xs text-pink-300 focus:outline-none resize-none leading-relaxed whitespace-pre"></textarea>
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-5 py-2.5 rounded-xl text-sm font-medium transition">Hủy</button>
@@ -107,6 +112,23 @@
     <!-- JavaScript Logic -->
     <script>
         let configs = JSON.parse(localStorage.getItem('server_mc_proxy_configs')) || [];
+
+        function updateLineNumbers() {
+            const textarea = document.getElementById('configContent');
+            const lineNumbers = document.getElementById('lineNumbers');
+            const lines = textarea.value.split('\n').length;
+            let numbersString = '';
+            for (let i = 1; i <= lines; i++) {
+                numbersString += i + '<br>';
+            }
+            lineNumbers.innerHTML = numbersString || '1';
+        }
+
+        function syncScroll() {
+            const textarea = document.getElementById('configContent');
+            const lineNumbers = document.getElementById('lineNumbers');
+            lineNumbers.scrollTop = textarea.scrollTop;
+        }
 
         function renderConfigs(data = configs) {
             const grid = document.getElementById('configGrid');
@@ -153,6 +175,7 @@
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Config Mới';
             document.getElementById('configForm').reset();
             document.getElementById('configIndex').value = '';
+            updateLineNumbers();
         }
 
         function closeModal() {
@@ -187,6 +210,7 @@
             document.getElementById('configName').value = item.name;
             document.getElementById('configType').value = item.type;
             document.getElementById('configContent').value = item.content;
+            updateLineNumbers();
         }
 
         function deleteConfig(index) {
@@ -220,5 +244,4 @@
         renderConfigs();
     </script>
 </body>
-  </html>
-
+</html>
