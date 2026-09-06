@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server MC Proxy - Config Vault</title>
+    <title>Server MC Proxy - Quản Lý Configs</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .rainbow-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #09090b 100%);
-        }
+        .rainbow-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #09090b 100%); }
         .rainbow-text {
             background: linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
             -webkit-background-clip: text;
@@ -32,8 +30,8 @@
                     <i class="fa-solid fa-server text-white text-xl animate-pulse"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black tracking-wider rainbow-text">SERVER MC PROXY</h1>
-                    <p class="text-xs text-zinc-400">Quản lý cấu hình Proxy & Server Minecraft</p>
+                    <h1 class="text-xl font-black tracking-wider rainbow-text">MC PROXY CONFIGS</h1>
+                    <p class="text-xs text-zinc-400">Hệ thống quản lý cấu hình máy chủ</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
@@ -51,14 +49,13 @@
 
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Thanh tìm kiếm & Thống kê -->
         <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 backdrop-blur-md shadow-xl">
             <div class="w-full sm:w-1/2 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-400"></i>
-                <input type="text" id="searchInput" oninput="filterConfigs()" placeholder="Tìm kiếm tên, loại config (Bungee, Velocity, Paper)..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-11 pr-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition shadow-inner">
+                <input type="text" id="searchInput" oninput="filterConfigs()" placeholder="Tìm kiếm tên config, đường dẫn..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-11 pr-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition shadow-inner">
             </div>
             <div class="text-sm text-zinc-300 flex items-center space-x-2 bg-zinc-950/60 px-4 py-2.5 rounded-xl border border-zinc-800">
-                <i class="fa-solid fa-layer-group text-pink-400"></i>
+                <i class="fa-solid fa-database text-cyan-400"></i>
                 <span>Tổng số: <strong id="totalCount" class="rainbow-text font-bold">0</strong> config</span>
             </div>
         </div>
@@ -71,41 +68,36 @@
         <!-- Trạng thái trống -->
         <div id="emptyState" class="hidden text-center py-20">
             <div class="bg-zinc-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border border-zinc-800 shadow-inner">
-                <i class="fa-solid fa-box-open text-zinc-600 text-3xl"></i>
+                <i class="fa-solid fa-file-code text-zinc-600 text-3xl"></i>
             </div>
-            <p class="text-zinc-400 text-base font-medium">Chưa có cấu hình nào được lưu.</p>
-            <p class="text-zinc-500 text-xs mt-1">Hãy bấm nút "Thêm Config" phía trên để bắt đầu!</p>
+            <p class="text-zinc-400 text-base font-medium">Chưa có config nào trên hệ thống.</p>
+            <p class="text-zinc-500 text-xs mt-1">Bấm nút "Thêm Config" để bắt đầu tạo mới!</p>
         </div>
     </main>
 
-    <!-- Modal Thêm/Sửa -->
+    <!-- Modal Thêm/Sửa Config -->
     <div id="configModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 transition-all">
         <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div class="px-6 py-4 bg-zinc-800/80 border-b border-zinc-700/60 flex justify-between items-center">
                 <h3 id="modalTitle" class="font-bold text-lg text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>
+                    <i class="fa-solid fa-file-pen text-pink-400"></i>
                     <span>Thêm Config Mới</span>
                 </h3>
                 <button onclick="closeModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="configForm" onsubmit="saveConfig(event)" class="p-6 space-y-4">
-                <input type="hidden" id="configIndex">
+                <input type="hidden" id="configId">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tên Config</label>
-                    <input type="text" id="configName" placeholder="VD: Velocity Config, Server Properties..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                    <input type="text" id="configName" placeholder="VD: Velocity Config, BungeeGuard..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Loại Proxy / Server</label>
-                    <input type="text" id="configType" placeholder="VD: Velocity, BungeeCord, Paper..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Đường Dẫn / File</label>
+                    <input type="text" id="configPath" placeholder="VD: /velocity.toml" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition font-mono text-xs">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Nội dung Config</label>
-                    <div class="relative flex bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus-within:border-purple-500 transition shadow-inner">
-                        <!-- Số dòng -->
-                        <div id="lineNumbers" aria-hidden="true" class="select-none font-mono text-xs text-zinc-600 bg-zinc-900/50 py-2.5 px-3 text-right border-r border-zinc-800/80 overflow-hidden leading-relaxed pointer-events-none" style="min-width: 40px;">1</div>
-                        <!-- Textarea nhập nội dung -->
-                        <textarea id="configContent" rows="7" oninput="updateLineNumbers()" onscroll="syncScroll()" placeholder="Dán nội dung cấu hình vào đây..." required class="w-full bg-transparent p-2.5 font-mono text-xs text-pink-300 focus:outline-none resize-none leading-relaxed whitespace-pre"></textarea>
-                    </div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Nội Dung Config (YAML / TOML / JSON)</label>
+                    <textarea id="configContent" rows="6" placeholder="Dán nội dung cấu hình vào đây..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition font-mono resize-none"></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-5 py-2.5 rounded-xl text-sm font-medium transition">Hủy</button>
@@ -115,31 +107,52 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
-    <script>
-        let configs = JSON.parse(localStorage.getItem('server_mc_proxy_configs')) || [];
+    <!-- Firebase & Main Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        function updateLineNumbers() {
-            const textarea = document.getElementById('configContent');
-            const lineNumbers = document.getElementById('lineNumbers');
-            const lines = textarea.value.split('\n').length;
-            let numbersString = '';
-            for (let i = 1; i <= lines; i++) {
-                numbersString += i + '<br>';
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHFlSyZKhlDZtMJqEAOC1LZ5GzUpOUY5I",
+            authDomain: "proxy-b73b2.firebaseapp.com",
+            databaseURL: "https://proxy-b73b2-default-rtdb.firebaseio.com",
+            projectId: "proxy-b73b2",
+            storageBucket: "proxy-b73b2.firebasestorage.app",
+            messagingSenderId: "205093010784",
+            appId: "1:205093010784:web:0c5866ff8eb18549d1b205",
+            measurementId: "G-3KSWYRMJD4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const configsRef = ref(db, 'configs');
+
+        let configsList = [];
+
+        // Lấy dữ liệu Realtime từ Firebase, nếu lỗi chuyển sang dùng localStorage dự phòng
+        onValue(configsRef, (snapshot) => {
+            const data = snapshot.val();
+            configsList = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    configsList.push({ id: key, ...data[key] });
+                });
+            } else {
+                // Nếu Firebase trống, thử lấy từ localStorage dự phòng
+                const localData = JSON.parse(localStorage.getItem('backup_configs')) || [];
+                configsList = localData;
             }
-            lineNumbers.innerHTML = numbersString || '1';
-        }
+            renderConfigs(configsList);
+        }, (error) => {
+            console.warn("Lỗi kết nối Firebase, chuyển sang chế độ LocalStorage cục bộ:", error);
+            configsList = JSON.parse(localStorage.getItem('backup_configs')) || [];
+            renderConfigs(configsList);
+        });
 
-        function syncScroll() {
-            const textarea = document.getElementById('configContent');
-            const lineNumbers = document.getElementById('lineNumbers');
-            lineNumbers.scrollTop = textarea.scrollTop;
-        }
-
-        function renderConfigs(data = configs) {
+        window.renderConfigs = function(data) {
             const grid = document.getElementById('configGrid');
             const emptyState = document.getElementById('emptyState');
-            document.getElementById('totalCount').innerText = configs.length;
+            document.getElementById('totalCount').innerText = configsList.length;
 
             grid.innerHTML = '';
             if (data.length === 0) {
@@ -148,27 +161,25 @@
             }
             emptyState.classList.add('hidden');
 
-            data.forEach((item, index) => {
+            data.forEach((item) => {
                 const card = document.createElement('div');
                 card.className = 'bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-purple-500/50 transition duration-300 group backdrop-blur-md relative overflow-hidden';
                 card.innerHTML = `
                     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-70 group-hover:opacity-100 transition"></div>
                     <div>
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-base text-white truncate max-w-[170px]" title="${item.name}">${item.name}</h3>
-                            <span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs px-2.5 py-1 rounded-lg font-medium uppercase tracking-wider">${item.type}</span>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-base text-white truncate max-w-[180px]" title="${item.name}">${item.name}</h3>
+                            <span class="text-[11px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-mono">${item.path}</span>
                         </div>
-                        <div class="relative bg-zinc-950/90 rounded-xl p-3.5 border border-zinc-800/80 max-h-36 overflow-y-auto shadow-inner">
-                            <pre class="font-mono text-xs text-pink-300/90 whitespace-pre-wrap">${escapeHtml(item.content)}</pre>
-                        </div>
+                        <pre class="bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 text-zinc-300 text-xs font-mono h-24 overflow-hidden mb-3 select-all">${item.content}</pre>
                     </div>
-                    <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
-                        <button onclick="copyContent(${index})" class="bg-zinc-800/60 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-600 hover:text-white text-zinc-200 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
-                            <i class="fa-regular fa-copy"></i> <span>Sao chép</span>
+                    <div class="flex justify-between items-center pt-3 border-t border-zinc-800/80">
+                        <button onclick="copyContent(\`${encodeURIComponent(item.content)}\`)" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
+                            <i class="fa-solid fa-copy"></i> <span>Sao chép</span>
                         </button>
                         <div class="space-x-1">
-                            <button onclick="editConfig(${index})" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteConfig(${index})" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editConfig('${item.id}', \`${encodeURIComponent(item.name)}\`, \`${encodeURIComponent(item.path)}\`, \`${encodeURIComponent(item.content)}\`)" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteConfig('${item.id}')" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `;
@@ -176,78 +187,85 @@
             });
         }
 
-        function openModal() {
+        window.openModal = function() {
             document.getElementById('configModal').classList.remove('hidden');
-            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Config Mới';
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-file-pen text-pink-400 mr-2"></i>Thêm Config Mới';
             document.getElementById('configForm').reset();
-            document.getElementById('configIndex').value = '';
-            updateLineNumbers();
+            document.getElementById('configId').value = '';
         }
 
-        function closeModal() {
+        window.closeModal = function() {
             document.getElementById('configModal').classList.add('hidden');
         }
 
-        function saveConfig(e) {
+        window.saveConfig = function(e) {
             e.preventDefault();
-            const index = document.getElementById('configIndex').value;
+            const id = document.getElementById('configId').value;
             const name = document.getElementById('configName').value;
-            const type = document.getElementById('configType').value;
+            const path = document.getElementById('configPath').value;
             const content = document.getElementById('configContent').value;
 
-            const configItem = { name, type, content };
-
-            if (index === '') {
-                configs.unshift(configItem);
-            } else {
-                configs[index] = configItem;
+            try {
+                if (id === "") {
+                    const newRef = push(configsRef);
+                    set(newRef, { name, path, content });
+                } else {
+                    const itemRef = ref(db, 'configs/' + id);
+                    set(itemRef, { name, path, content });
+                }
+            } catch (err) {
+                // Dự phòng lưu cục bộ nếu Firebase lỗi ghi
+                let localData = JSON.parse(localStorage.getItem('backup_configs')) || [];
+                if (id === "") {
+                    localData.unshift({ id: 'local_' + Date.now(), name, path, content });
+                } else {
+                    const idx = localData.findIndex(i => i.id === id);
+                    if (idx !== -1) localData[idx] = { id, name, path, content };
+                }
+                localStorage.setItem('backup_configs', JSON.stringify(localData));
+                renderConfigs(localData);
             }
-
-            localStorage.setItem('server_mc_proxy_configs', JSON.stringify(configs));
             closeModal();
-            renderConfigs();
         }
 
-        function editConfig(index) {
-            const item = configs[index];
+        window.editConfig = function(id, name, path, content) {
             document.getElementById('configModal').classList.remove('hidden');
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Chỉnh Sửa Config';
-            document.getElementById('configIndex').value = index;
-            document.getElementById('configName').value = item.name;
-            document.getElementById('configType').value = item.type;
-            document.getElementById('configContent').value = item.content;
-            updateLineNumbers();
+            document.getElementById('configId').value = id;
+            document.getElementById('configName').value = decodeURIComponent(name);
+            document.getElementById('configPath').value = decodeURIComponent(path);
+            document.getElementById('configContent').value = decodeURIComponent(content);
         }
 
-        function deleteConfig(index) {
-            if (confirm('Bạn có chắc chắn muốn xóa cấu hình này không?')) {
-                configs.splice(index, 1);
-                localStorage.setItem('server_mc_proxy_configs', JSON.stringify(configs));
-                renderConfigs();
+        window.deleteConfig = function(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa config này không?')) {
+                try {
+                    const itemRef = ref(db, 'configs/' + id);
+                    remove(itemRef);
+                } catch (e) {
+                    let localData = JSON.parse(localStorage.getItem('backup_configs')) || [];
+                    localData = localData.filter(i => i.id !== id);
+                    localStorage.setItem('backup_configs', JSON.stringify(localData));
+                    renderConfigs(localData);
+                }
             }
         }
 
-        function copyContent(index) {
-            const content = configs[index].content;
+        window.copyContent = function(encodedContent) {
+            const content = decodeURIComponent(encodedContent);
             navigator.clipboard.writeText(content).then(() => {
                 alert('Đã sao chép nội dung config vào clipboard!');
             });
         }
 
-        function filterConfigs() {
+        window.filterConfigs = function() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = configs.filter(item => 
+            const filtered = configsList.filter(item => 
                 item.name.toLowerCase().includes(keyword) || 
-                item.type.toLowerCase().includes(keyword)
+                item.path.toLowerCase().includes(keyword)
             );
             renderConfigs(filtered);
         }
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        renderConfigs();
     </script>
 </body>
 </html>
