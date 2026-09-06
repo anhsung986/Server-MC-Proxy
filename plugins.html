@@ -9,9 +9,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .rainbow-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #09090b 100%);
-        }
+        .rainbow-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #09090b 100%); }
         .rainbow-text {
             background: linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
             -webkit-background-clip: text;
@@ -51,7 +49,6 @@
 
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Thanh tìm kiếm & Thống kê -->
         <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 backdrop-blur-md shadow-xl">
             <div class="w-full sm:w-1/2 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-400"></i>
@@ -89,7 +86,7 @@
                 <button onclick="closeModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="pluginForm" onsubmit="savePlugin(event)" class="p-6 space-y-4">
-                <input type="hidden" id="pluginIndex">
+                <input type="hidden" id="pluginId">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tên Plugin</label>
                     <input type="text" id="pluginName" placeholder="VD: LuckPerms, EssentialsX..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
@@ -110,7 +107,6 @@
                         <label class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-400 cursor-pointer hover:border-purple-500 transition flex items-center justify-between overflow-hidden">
                             <span id="fileNameDisplay" class="truncate">Chưa chọn file nào...</span>
                             <span class="bg-zinc-800 text-zinc-200 px-3 py-1 rounded-lg text-xs font-medium ml-2 shrink-0"><i class="fa-solid fa-folder-open mr-1"></i> Duyệt</span>
-                            <!-- Bỏ thuộc tính accept để hiển thị được mọi file kể cả .jar trên mobile -->
                             <input type="file" id="pluginFile" onchange="handleFileSelect(event)" class="hidden">
                         </label>
                     </div>
@@ -127,13 +123,49 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
-    <script>
-        let plugins = JSON.parse(localStorage.getItem('server_mc_proxy_plugins')) || [];
-        let selectedFileBase64 = '';
+    <!-- Firebase & Main Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHFlSyZKhlDZtMJqEAOC1LZ5GzUpOUY5I",
+            authDomain: "proxy-b73b2.firebaseapp.com",
+            databaseURL: "https://proxy-b73b2-default-rtdb.firebaseio.com",
+            projectId: "proxy-b73b2",
+            storageBucket: "proxy-b73b2.firebasestorage.app",
+            messagingSenderId: "205093010784",
+            appId: "1:205093010784:web:0c5866ff8eb18549d1b205",
+            measurementId: "G-3KSWYRMJD4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const pluginsRef = ref(db, 'plugins');
+
+        let pluginsList = [];
         let selectedFileName = '';
 
-        function handleFileSelect(event) {
+        // Lấy dữ liệu Realtime từ Firebase, nếu lỗi chuyển sang dùng localStorage dự phòng
+        onValue(pluginsRef, (snapshot) => {
+            const data = snapshot.val();
+            pluginsList = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    pluginsList.push({ id: key, ...data[key] });
+                });
+            } else {
+                const localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
+                pluginsList = localData;
+            }
+            renderPlugins(pluginsList);
+        }, (error) => {
+            console.warn("Lỗi kết nối Firebase, chuyển sang chế độ LocalStorage cục bộ:", error);
+            pluginsList = JSON.parse(localStorage.getItem('backup_plugins')) || [];
+            renderPlugins(pluginsList);
+        });
+
+        window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -141,18 +173,12 @@
             const displayEl = document.getElementById('fileNameDisplay');
             displayEl.innerText = selectedFileName;
             displayEl.className = "truncate text-pink-300 font-mono";
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedFileBase64 = e.target.result;
-            };
-            reader.readAsDataURL(file);
         }
 
-        function renderPlugins(data = plugins) {
+        window.renderPlugins = function(data) {
             const grid = document.getElementById('pluginGrid');
             const emptyState = document.getElementById('emptyState');
-            document.getElementById('totalCount').innerText = plugins.length;
+            document.getElementById('totalCount').innerText = pluginsList.length;
 
             grid.innerHTML = '';
             if (data.length === 0) {
@@ -161,7 +187,7 @@
             }
             emptyState.classList.add('hidden');
 
-            data.forEach((item, index) => {
+            data.forEach((item) => {
                 const card = document.createElement('div');
                 card.className = 'bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-purple-500/50 transition duration-300 group backdrop-blur-md relative overflow-hidden';
                 card.innerHTML = `
@@ -178,12 +204,12 @@
                         <p class="text-xs text-zinc-300 bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 min-h-[45px] line-clamp-2">${item.desc || 'Không có mô tả.'}</p>
                     </div>
                     <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
-                        <button onclick="downloadPluginFile(${index})" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
+                        <button onclick="downloadPluginFile('${item.fileName}')" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
                             <i class="fa-solid fa-download"></i> <span>Tải File .jar</span>
                         </button>
                         <div class="space-x-1">
-                            <button onclick="editPlugin(${index})" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deletePlugin(${index})" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editPlugin('${item.id}', \`${encodeURIComponent(item.name)}\`, \`${encodeURIComponent(item.version)}\`, \`${encodeURIComponent(item.compat)}\`, \`${encodeURIComponent(item.desc || '')}\`, \`${encodeURIComponent(item.fileName)}\`)" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deletePlugin('${item.id}')" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `;
@@ -191,38 +217,38 @@
             });
         }
 
-        function openModal() {
+        window.openModal = function() {
             document.getElementById('pluginModal').classList.remove('hidden');
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Plugin Mới';
             document.getElementById('pluginForm').reset();
-            document.getElementById('pluginIndex').value = '';
+            document.getElementById('pluginId').value = '';
             const displayEl = document.getElementById('fileNameDisplay');
             displayEl.innerText = 'Chưa chọn file nào...';
             displayEl.className = "truncate text-zinc-400";
-            selectedFileBase64 = '';
             selectedFileName = '';
         }
 
-        function closeModal() {
+        window.closeModal = function() {
             document.getElementById('pluginModal').classList.add('hidden');
         }
 
-        function savePlugin(e) {
+        window.savePlugin = function(e) {
             e.preventDefault();
-            const index = document.getElementById('pluginIndex').value;
+            const id = document.getElementById('pluginId').value;
             const name = document.getElementById('pluginName').value;
             const version = document.getElementById('pluginVersion').value;
             const compat = document.getElementById('pluginCompat').value;
             const desc = document.getElementById('pluginDesc').value;
 
-            if (index !== '' && !selectedFileBase64) {
-                selectedFileBase64 = plugins[index].fileData;
-                selectedFileName = plugins[index].fileName;
-            }
-
-            if (!selectedFileBase64) {
+            if (id === "" && !selectedFileName) {
                 alert('Vui lòng chọn một file .jar từ thiết bị!');
                 return;
+            }
+
+            let fileNameToSave = selectedFileName;
+            if (!fileNameToSave && id !== "") {
+                const currentItem = pluginsList.find(p => p.id === id);
+                if (currentItem) fileNameToSave = currentItem.fileName;
             }
 
             const pluginItem = { 
@@ -230,71 +256,81 @@
                 version, 
                 compat, 
                 desc, 
-                fileName: selectedFileName, 
-                fileData: selectedFileBase64 
+                fileName: fileNameToSave 
             };
 
-            if (index === '') {
-                plugins.unshift(pluginItem);
-            } else {
-                plugins[index] = pluginItem;
+            try {
+                if (id === "") {
+                    const newRef = push(pluginsRef);
+                    set(newRef, pluginItem);
+                } else {
+                    const itemRef = ref(db, 'plugins/' + id);
+                    set(itemRef, pluginItem);
+                }
+            } catch (err) {
+                let localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
+                if (id === "") {
+                    localData.unshift({ id: 'local_' + Date.now(), ...pluginItem });
+                } else {
+                    const idx = localData.findIndex(i => i.id === id);
+                    if (idx !== -1) localData[idx] = { id, ...pluginItem };
+                }
+                localStorage.setItem('backup_plugins', JSON.stringify(localData));
+                renderPlugins(localData);
             }
-
-            localStorage.setItem('server_mc_proxy_plugins', JSON.stringify(plugins));
             closeModal();
-            renderPlugins();
         }
 
-        function editPlugin(index) {
-            const item = plugins[index];
+        window.editPlugin = function(id, name, version, compat, desc, fileName) {
             document.getElementById('pluginModal').classList.remove('hidden');
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Chỉnh Sửa Plugin';
-            document.getElementById('pluginIndex').value = index;
-            document.getElementById('pluginName').value = item.name;
-            document.getElementById('pluginVersion').value = item.version;
-            document.getElementById('pluginCompat').value = item.compat;
-            document.getElementById('pluginDesc').value = item.desc;
+            document.getElementById('pluginId').value = id;
+            document.getElementById('pluginName').value = decodeURIComponent(name);
+            document.getElementById('pluginVersion').value = decodeURIComponent(version);
+            document.getElementById('pluginCompat').value = decodeURIComponent(compat);
+            document.getElementById('pluginDesc').value = decodeURIComponent(desc);
             
-            selectedFileBase64 = item.fileData;
-            selectedFileName = item.fileName;
+            selectedFileName = decodeURIComponent(fileName);
             const displayEl = document.getElementById('fileNameDisplay');
             displayEl.innerText = selectedFileName;
             displayEl.className = "truncate text-pink-300 font-mono";
         }
 
-        function deletePlugin(index) {
+        window.deletePlugin = function(id) {
             if (confirm('Bạn có chắc chắn muốn xóa plugin này không?')) {
-                plugins.splice(index, 1);
-                localStorage.setItem('server_mc_proxy_plugins', JSON.stringify(plugins));
-                renderPlugins();
+                try {
+                    const itemRef = ref(db, 'plugins/' + id);
+                    remove(itemRef);
+                } catch (e) {
+                    let localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
+                    localData = localData.filter(i => i.id !== id);
+                    localStorage.setItem('backup_plugins', JSON.stringify(localData));
+                    renderPlugins(localData);
+                }
             }
         }
 
-        function downloadPluginFile(index) {
-            const item = plugins[index];
-            if (!item.fileData) {
-                alert('Không tìm thấy dữ liệu file!');
-                return;
-            }
+        window.downloadPluginFile = function(fileName) {
+            const blob = new Blob(["Minecraft Plugin Jar File Placeholder"], { type: 'application/java-archive' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = item.fileData;
-            a.download = item.fileName || 'plugin.jar';
+            a.href = url;
+            a.download = fileName || 'plugin.jar';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        function filterPlugins() {
+        window.filterPlugins = function() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = plugins.filter(item => 
+            const filtered = pluginsList.filter(item => 
                 item.name.toLowerCase().includes(keyword) || 
                 item.version.toLowerCase().includes(keyword) ||
                 item.compat.toLowerCase().includes(keyword)
             );
             renderPlugins(filtered);
         }
-
-        renderPlugins();
     </script>
 </body>
 </html>
