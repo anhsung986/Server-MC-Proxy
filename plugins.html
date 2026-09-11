@@ -15,10 +15,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* Thêm dấu x / gạch ngang lên đầu/trên toàn bộ chữ */
-        body, h1, h2, h3, h4, h5, h6, p, span, a, button, label, input, textarea {
+        .crossed-title {
             text-decoration: line-through !important;
-            text-decoration-color: #ef4444 !important; /* Màu gạch ngang màu đỏ nổi bật */
+            text-decoration-color: #ef4444 !important;
             text-decoration-thickness: 2px !important;
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -36,16 +35,18 @@
                     <i class="fa-solid fa-puzzle-piece text-white text-xl animate-pulse"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black tracking-wider rainbow-text">KHO PLUGINS</h1>
+                    <h1 class="text-xl font-black tracking-wider rainbow-text crossed-title">KHO PLUGINS</h1>
                     <p class="text-xs text-zinc-400">Quản lý file .jar & Plugin Minecraft</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
+                <!-- Nút quay lại (Về Configs) là nút duy nhất hoạt động bình thường -->
                 <a href="index.html" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 rounded-xl font-semibold transition text-sm flex items-center space-x-2 border border-zinc-700">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span class="hidden sm:inline">Về Configs</span>
                 </a>
-                <button onclick="openModal()" class="bg-gradient-to-r from-pink-500 via-purple-600 to-blue-600 hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/30 flex items-center space-x-2 text-sm active:scale-95">
+                <!-- Các nút khác bị khóa -->
+                <button disabled class="bg-zinc-800 text-zinc-600 cursor-not-allowed px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 text-sm opacity-50">
                     <i class="fa-solid fa-plus"></i>
                     <span>Thêm Plugin</span>
                 </button>
@@ -58,7 +59,7 @@
         <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800 backdrop-blur-md shadow-xl">
             <div class="w-full sm:w-1/2 relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-zinc-400"></i>
-                <input type="text" id="searchInput" oninput="filterPlugins()" placeholder="Tìm kiếm tên plugin, phiên bản..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-11 pr-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition shadow-inner">
+                <input type="text" id="searchInput" disabled placeholder="Tính năng tìm kiếm đã khóa..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-11 pr-4 py-2.5 text-zinc-600 text-sm cursor-not-allowed">
             </div>
             <div class="text-sm text-zinc-300 flex items-center space-x-2 bg-zinc-950/60 px-4 py-2.5 rounded-xl border border-zinc-800">
                 <i class="fa-solid fa-box text-pink-400"></i>
@@ -72,67 +73,19 @@
         </div>
 
         <!-- Trạng thái trống -->
-        <div id="emptyState" class="hidden text-center py-20">
+        <div id="emptyState" class="text-center py-20">
             <div class="bg-zinc-900/50 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 border border-zinc-800 shadow-inner">
                 <i class="fa-solid fa-puzzle-piece text-zinc-600 text-3xl"></i>
             </div>
             <p class="text-zinc-400 text-base font-medium">Chưa có plugin nào được lưu.</p>
-            <p class="text-zinc-500 text-xs mt-1">Hãy bấm nút "Thêm Plugin" phía trên để bắt đầu!</p>
+            <p class="text-zinc-500 text-xs mt-1">Các chức năng thêm/sửa/xóa đã tạm khóa!</p>
         </div>
     </main>
-
-    <!-- Modal Thêm/Sửa Plugin -->
-    <div id="pluginModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 transition-all">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div class="px-6 py-4 bg-zinc-800/80 border-b border-zinc-700/60 flex justify-between items-center">
-                <h3 id="modalTitle" class="font-bold text-lg text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>
-                    <span>Thêm Plugin Mới</span>
-                </h3>
-                <button onclick="closeModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <form id="pluginForm" onsubmit="savePlugin(event)" class="p-6 space-y-4">
-                <input type="hidden" id="pluginId">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tên Plugin</label>
-                    <input type="text" id="pluginName" placeholder="VD: LuckPerms, EssentialsX..." required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Phiên Bản</label>
-                        <input type="text" id="pluginVersion" placeholder="VD: v5.4.32" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Tương Thích</label>
-                        <input type="text" id="pluginCompat" placeholder="VD: 1.16 - 1.20+" required class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-purple-500 text-white text-sm transition">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Chọn File Plugin (.jar từ thiết bị)</label>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-400 cursor-pointer hover:border-purple-500 transition flex items-center justify-between overflow-hidden">
-                            <span id="fileNameDisplay" class="truncate">Chưa chọn file nào...</span>
-                            <span class="bg-zinc-800 text-zinc-200 px-3 py-1 rounded-lg text-xs font-medium ml-2 shrink-0"><i class="fa-solid fa-folder-open mr-1"></i> Duyệt</span>
-                            <input type="file" id="pluginFile" onchange="handleFileSelect(event)" class="hidden">
-                        </label>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Mô Tả Ngắn</label>
-                    <textarea id="pluginDesc" rows="2" placeholder="Mô tả công dụng chính của plugin..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-300 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="closeModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-5 py-2.5 rounded-xl text-sm font-medium transition">Hủy</button>
-                    <button type="submit" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-purple-500/30">Lưu Lại</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Firebase & Main Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAHFlSyZKhlDZtMJqEAOC1LZ5GzUpOUY5I",
@@ -150,7 +103,6 @@
         const pluginsRef = ref(db, 'plugins');
 
         let pluginsList = [];
-        let selectedFileName = '';
 
         onValue(pluginsRef, (snapshot) => {
             const data = snapshot.val();
@@ -160,23 +112,13 @@
                     pluginsList.push({ id: key, ...data[key] });
                 });
             } else {
-                const localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
-                pluginsList = localData;
+                pluginsList = JSON.parse(localStorage.getItem('backup_plugins')) || [];
             }
             renderPlugins(pluginsList);
         }, (error) => {
             pluginsList = JSON.parse(localStorage.getItem('backup_plugins')) || [];
             renderPlugins(pluginsList);
         });
-
-        window.handleFileSelect = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            selectedFileName = file.name;
-            const displayEl = document.getElementById('fileNameDisplay');
-            displayEl.innerText = selectedFileName;
-            displayEl.className = "truncate text-pink-300 font-mono";
-        }
 
         window.renderPlugins = function(data) {
             const grid = document.getElementById('pluginGrid');
@@ -192,9 +134,9 @@
 
             data.forEach((item) => {
                 const card = document.createElement('div');
-                card.className = 'bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-purple-500/50 transition duration-300 group backdrop-blur-md relative overflow-hidden';
+                card.className = 'bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl backdrop-blur-md relative overflow-hidden opacity-80';
                 card.innerHTML = `
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-70 group-hover:opacity-100 transition"></div>
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-70"></div>
                     <div>
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="font-bold text-base text-white truncate max-w-[160px]" title="${item.name}">${item.name}</h3>
@@ -207,114 +149,18 @@
                         <p class="text-xs text-zinc-300 bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 min-h-[45px] line-clamp-2">${item.desc || 'Không có mô tả.'}</p>
                     </div>
                     <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
-                        <button onclick="downloadPluginFile()" class="bg-zinc-800 text-zinc-500 cursor-not-allowed px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center space-x-1.5 shadow-md">
-                            <i class="fa-solid fa-ban"></i> <span>Khóa Tải Về</span>
+                        <!-- Khóa toàn bộ các nút hành động trên card -->
+                        <button disabled class="bg-zinc-800 text-zinc-600 cursor-not-allowed px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center space-x-1.5 opacity-50">
+                            <i class="fa-solid fa-ban"></i> <span>Đã Khóa</span>
                         </button>
                         <div class="space-x-1">
-                            <button onclick="editPlugin('${item.id}', \`${encodeURIComponent(item.name)}\`, \`${encodeURIComponent(item.version)}\`, \`${encodeURIComponent(item.compat)}\`, \`${encodeURIComponent(item.desc || '')}\`, \`${encodeURIComponent(item.fileName)}\`)" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deletePlugin('${item.id}')" class="text-zinc-400 hover:text-rose-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            <button disabled class="text-zinc-600 p-2 rounded-lg cursor-not-allowed" title="Đã khóa"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button disabled class="text-zinc-600 p-2 rounded-lg cursor-not-allowed" title="Đã khóa"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-        }
-
-        window.openModal = function() {
-            document.getElementById('pluginModal').classList.remove('hidden');
-            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-pink-400 mr-2"></i>Thêm Plugin Mới';
-            document.getElementById('pluginForm').reset();
-            document.getElementById('pluginId').value = '';
-            const displayEl = document.getElementById('fileNameDisplay');
-            displayEl.innerText = 'Chưa chọn file nào...';
-            displayEl.className = "truncate text-zinc-400";
-            selectedFileName = '';
-        }
-
-        window.closeModal = function() {
-            document.getElementById('pluginModal').classList.add('hidden');
-        }
-
-        window.savePlugin = function(e) {
-            e.preventDefault();
-            const id = document.getElementById('pluginId').value;
-            const name = document.getElementById('pluginName').value;
-            const version = document.getElementById('pluginVersion').value;
-            const compat = document.getElementById('pluginCompat').value;
-            const desc = document.getElementById('pluginDesc').value;
-
-            let fileNameToSave = selectedFileName;
-            if (!fileNameToSave && id !== "") {
-                const currentItem = pluginsList.find(p => p.id === id);
-                if (currentItem) fileNameToSave = currentItem.fileName;
-            }
-
-            const pluginItem = { name, version, compat, desc, fileName: fileNameToSave || 'unknown.jar' };
-
-            try {
-                if (id === "") {
-                    const newRef = push(pluginsRef);
-                    set(newRef, pluginItem);
-                } else {
-                    const itemRef = ref(db, 'plugins/' + id);
-                    set(itemRef, pluginItem);
-                }
-            } catch (err) {
-                let localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
-                if (id === "") {
-                    localData.unshift({ id: 'local_' + Date.now(), ...pluginItem });
-                } else {
-                    const idx = localData.findIndex(i => i.id === id);
-                    if (idx !== -1) localData[idx] = { id, ...pluginItem };
-                }
-                localStorage.setItem('backup_plugins', JSON.stringify(localData));
-                renderPlugins(localData);
-            }
-            closeModal();
-        }
-
-        window.editPlugin = function(id, name, version, compat, desc, fileName) {
-            document.getElementById('pluginModal').classList.remove('hidden');
-            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i>Chỉnh Sửa Plugin';
-            document.getElementById('pluginId').value = id;
-            document.getElementById('pluginName').value = decodeURIComponent(name);
-            document.getElementById('pluginVersion').value = decodeURIComponent(version);
-            document.getElementById('pluginCompat').value = decodeURIComponent(compat);
-            document.getElementById('pluginDesc').value = decodeURIComponent(desc);
-            
-            selectedFileName = decodeURIComponent(fileName);
-            const displayEl = document.getElementById('fileNameDisplay');
-            displayEl.innerText = selectedFileName;
-            displayEl.className = "truncate text-pink-300 font-mono";
-        }
-
-        window.deletePlugin = function(id) {
-            if (confirm('Bạn có chắc chắn muốn xóa plugin này không?')) {
-                try {
-                    const itemRef = ref(db, 'plugins/' + id);
-                    remove(itemRef);
-                } catch (e) {
-                    let localData = JSON.parse(localStorage.getItem('backup_plugins')) || [];
-                    localData = localData.filter(i => i.id !== id);
-                    localStorage.setItem('backup_plugins', JSON.stringify(localData));
-                    renderPlugins(localData);
-                }
-            }
-        }
-
-        // Vô hiệu hóa toàn bộ chức năng tải về
-        window.downloadPluginFile = function() {
-            alert('Tính năng tải về đã bị khóa!');
-        }
-
-        window.filterPlugins = function() {
-            const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = pluginsList.filter(item => 
-                item.name.toLowerCase().includes(keyword) || 
-                item.version.toLowerCase().includes(keyword) ||
-                item.compat.toLowerCase().includes(keyword)
-            );
-            renderPlugins(filtered);
         }
     </script>
 </body>
