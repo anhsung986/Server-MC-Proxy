@@ -15,6 +15,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* Thêm dấu x / gạch ngang lên đầu/trên toàn bộ chữ */
+        body, h1, h2, h3, h4, h5, h6, p, span, a, button, label, input, textarea {
+            text-decoration: line-through !important;
+            text-decoration-color: #ef4444 !important; /* Màu gạch ngang màu đỏ nổi bật */
+            text-decoration-thickness: 2px !important;
+        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #18181b; }
         ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #ec4899, #8b5cf6); border-radius: 3px; }
@@ -146,7 +152,6 @@
         let pluginsList = [];
         let selectedFileName = '';
 
-        // Lấy dữ liệu Realtime từ Firebase, nếu lỗi chuyển sang dùng localStorage dự phòng
         onValue(pluginsRef, (snapshot) => {
             const data = snapshot.val();
             pluginsList = [];
@@ -160,7 +165,6 @@
             }
             renderPlugins(pluginsList);
         }, (error) => {
-            console.warn("Lỗi kết nối Firebase, chuyển sang chế độ LocalStorage cục bộ:", error);
             pluginsList = JSON.parse(localStorage.getItem('backup_plugins')) || [];
             renderPlugins(pluginsList);
         });
@@ -168,7 +172,6 @@
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             selectedFileName = file.name;
             const displayEl = document.getElementById('fileNameDisplay');
             displayEl.innerText = selectedFileName;
@@ -204,8 +207,8 @@
                         <p class="text-xs text-zinc-300 bg-zinc-950/80 p-3 rounded-xl border border-zinc-800/80 min-h-[45px] line-clamp-2">${item.desc || 'Không có mô tả.'}</p>
                     </div>
                     <div class="flex justify-between items-center mt-5 pt-3 border-t border-zinc-800/80">
-                        <button onclick="downloadPluginFile('${item.fileName}')" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1.5 shadow-md">
-                            <i class="fa-solid fa-download"></i> <span>Tải File .jar</span>
+                        <button onclick="downloadPluginFile()" class="bg-zinc-800 text-zinc-500 cursor-not-allowed px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center space-x-1.5 shadow-md">
+                            <i class="fa-solid fa-ban"></i> <span>Khóa Tải Về</span>
                         </button>
                         <div class="space-x-1">
                             <button onclick="editPlugin('${item.id}', \`${encodeURIComponent(item.name)}\`, \`${encodeURIComponent(item.version)}\`, \`${encodeURIComponent(item.compat)}\`, \`${encodeURIComponent(item.desc || '')}\`, \`${encodeURIComponent(item.fileName)}\`)" class="text-zinc-400 hover:text-cyan-400 p-2 rounded-lg hover:bg-zinc-800 transition" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -240,24 +243,13 @@
             const compat = document.getElementById('pluginCompat').value;
             const desc = document.getElementById('pluginDesc').value;
 
-            if (id === "" && !selectedFileName) {
-                alert('Vui lòng chọn một file .jar từ thiết bị!');
-                return;
-            }
-
             let fileNameToSave = selectedFileName;
             if (!fileNameToSave && id !== "") {
                 const currentItem = pluginsList.find(p => p.id === id);
                 if (currentItem) fileNameToSave = currentItem.fileName;
             }
 
-            const pluginItem = { 
-                name, 
-                version, 
-                compat, 
-                desc, 
-                fileName: fileNameToSave 
-            };
+            const pluginItem = { name, version, compat, desc, fileName: fileNameToSave || 'unknown.jar' };
 
             try {
                 if (id === "") {
@@ -310,16 +302,9 @@
             }
         }
 
-        window.downloadPluginFile = function(fileName) {
-            const blob = new Blob(["Minecraft Plugin Jar File Placeholder"], { type: 'application/java-archive' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName || 'plugin.jar';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        // Vô hiệu hóa toàn bộ chức năng tải về
+        window.downloadPluginFile = function() {
+            alert('Tính năng tải về đã bị khóa!');
         }
 
         window.filterPlugins = function() {
